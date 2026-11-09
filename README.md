@@ -9,7 +9,7 @@ O sistema é uma locadora de carros. O usuário faz cadastro e login, cadastra e
 | Integrante | Parte |
 |---|---|
 | Thales Alberto | Parte 1 - Estrutura do projeto e banco de dados |
-| (nome) | Parte 2 - Cadastro, login e JWT |
+| Pedro Henrique | Parte 2 - Cadastro, login e JWT |
 | (nome) | Parte 3 - Veículos e locações |
 | (nome) | Parte 4 - Frontend em React |
 
