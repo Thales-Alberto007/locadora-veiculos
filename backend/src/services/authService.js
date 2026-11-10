@@ -1,13 +1,11 @@
-
 const prisma = require("../prisma");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const criarErro = require("../utils/criarErro");
 
 const cadastrar = async ({ nome, email, senha }) => {
     if (!nome || !email || !senha) {
-        const erro = new Error("Nome, email e senha são obrigatórios");
-        erro.status = 400;
-        throw erro;
+        throw criarErro("Nome, email e senha são obrigatórios", 400);
     }
 
     const usuarioExistente = await prisma.usuario.findUnique({
@@ -15,9 +13,7 @@ const cadastrar = async ({ nome, email, senha }) => {
     });
 
     if (usuarioExistente) {
-        const erro = new Error("Email já cadastrado");
-        erro.status = 409;
-        throw erro;
+        throw criarErro("Email já cadastrado", 409);
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
@@ -41,9 +37,7 @@ const cadastrar = async ({ nome, email, senha }) => {
 
 const login = async ({ email, senha }) => {
     if (!email || !senha) {
-        const erro = new Error("Email e senha são obrigatórios");
-        erro.status = 400;
-        throw erro;
+        throw criarErro("Email e senha são obrigatórios", 400);
     }
 
     const usuario = await prisma.usuario.findUnique({
@@ -51,17 +45,13 @@ const login = async ({ email, senha }) => {
     });
 
     if (!usuario) {
-        const erro = new Error("Email ou senha inválidos");
-        erro.status = 401;
-        throw erro;
+        throw criarErro("Email ou senha inválidos", 401);
     }
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaValida) {
-        const erro = new Error("Email ou senha inválidos");
-        erro.status = 401;
-        throw erro;
+        throw criarErro("Email ou senha inválidos", 401);
     }
 
     const token = jwt.sign(
