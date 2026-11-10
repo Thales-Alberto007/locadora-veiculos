@@ -18,7 +18,7 @@ app.use((req, res) => {
 
 app.use(tratarErros);
 
-const porta = process.env.PORT || 3333;
+const porta = process.env.PORT || 3333; 
 
 app.listen(porta, () => {
   console.log("Servidor rodando na porta " + porta);
