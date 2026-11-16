@@ -11,14 +11,14 @@ O sistema é uma locadora de carros. O usuário faz cadastro e login, cadastra e
 | Thales Alberto | Parte 1 - Estrutura do projeto e banco de dados |
 | Pedro Henrique | Parte 2 - Cadastro, login e JWT |
 | (nome) | Parte 3 - Veículos e locações |
-| (nome) | Parte 4 - Frontend em React |
+| Thales Alberto | Parte 4 - Frontend em React |
 
 ## Status do projeto
 
 - [x] Parte 1 - Estrutura do backend, banco de dados, migrations e dados de exemplo
-- [ ] Parte 2 - Autenticação
+- [x] Parte 2 - Autenticação
 - [ ] Parte 3 - Veículos e locações
-- [ ] Parte 4 - Frontend
+- [x] Parte 4 - Frontend (esperando a Parte 3 para funcionar completo)
 
 ## Tecnologias
 
@@ -76,7 +76,17 @@ Para ver as tabelas e os dados dá para usar `npx prisma studio`.
 
 ## Como rodar o frontend
 
-Ainda vai ser feito na Parte 4.
+Com o backend rodando, abrir outro terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O site abre em `http://localhost:5173`. Dá para entrar com `ana@email.com` e senha `123456`, que vêm do seed.
+
+Se a API estiver em outro endereço, criar o arquivo `frontend/.env` copiando o `frontend/.env.example` e trocar o `VITE_API_URL`.
 
 ## Variáveis de ambiente
 
@@ -179,6 +189,57 @@ Ele também trata:
 
 Como o projeto usa o Express 5, erros dentro de funções `async` vão direto para o `tratarErros`, então não precisa de `try/catch` nos controllers.
 
+## Parte 4 - Frontend em React (Thales Alberto)
+
+### O que foi feito
+
+- Projeto React criado com Vite na pasta `frontend`
+- Telas de cadastro, login e logout
+- Tela de veículos com cadastro, lista e filtro de disponíveis
+- Tela de locações com nova locação, locações ativas, histórico e botão de finalizar
+- Conexão com a API usando Axios (`src/services/api.js`)
+- Mensagens de sucesso e de erro em todas as telas
+
+### Estrutura das pastas
+
+```
+frontend/
+  index.html
+  src/
+    main.jsx
+    App.jsx
+    index.css
+    services/api.js
+    components/Navbar.jsx
+    components/Mensagem.jsx
+    pages/Login.jsx
+    pages/Cadastro.jsx
+    pages/Veiculos.jsx
+    pages/Locacoes.jsx
+    utils/formatar.js
+```
+
+- `pages`: uma tela por arquivo
+- `components`: pedaços que aparecem em mais de uma tela
+- `services/api.js`: configuração do Axios
+- `utils/formatar.js`: funções para mostrar dinheiro e datas no formato brasileiro
+
+### Como funciona
+
+**Login e token.** O `Login.jsx` manda o email e a senha para `POST /api/auth/login`. Quando dá certo, o `App.jsx` guarda o token e o email no `localStorage` e mostra as telas do sistema. O email aparece na barra de cima. O botão "Sair" apaga o token e volta para o login.
+
+**api.js.** O Axios tem um interceptor que coloca `Authorization: Bearer <token>` em todas as requisições. Se a API responder 401 (token vencido ou inválido), ele apaga o token e manda o usuário para o login. A função `pegarMensagemErro` pega o texto que vem em `{ "erro": "..." }` para mostrar na tela.
+
+**Rotas das telas.** O `App.jsx` usa o React Router. Sem token só dá para abrir `/login` e `/cadastro`. Com token dá para abrir `/veiculos` e `/locacoes`.
+
+**Formulários.** Todos os formulários são controlados: cada campo tem um `useState`, usa `value` e muda com `onChange`. O envio é no `onSubmit`, que chama `e.preventDefault()` para a página não recarregar.
+
+**Veiculos.jsx.** O `useEffect` chama `carregarVeiculos()` quando a tela abre e toda vez que o filtro "Só disponíveis" muda. O cadastro manda `POST /api/veiculos` e depois carrega a lista de novo.
+
+**Locacoes.jsx.** O `useEffect` chama `carregarDados()`, que busca os veículos disponíveis e as locações do usuário. A função `registrar` confere se a data de devolução é depois da data de início e manda `POST /api/locacoes` com `veiculoId`, `dataInicio` e `dataPrevistaDevolucao`. Depois da resposta mostra a mensagem, limpa o formulário e chama `carregarDados()` de novo. Assim a locação nova aparece na lista e o carro some das opções. Se der erro (por exemplo "Veículo indisponível"), a mensagem da API aparece em vermelho. A função `finalizar` manda `PATCH /api/locacoes/:id/finalizar` e atualiza a tela do mesmo jeito.
+
+**Valor da locação.** O frontend não calcula o valor. Ele só mostra o `valorTotal` que vem da API, porque a regra fica no backend.
+
 ---
 
 ## O que falta fazer (próximas partes)
@@ -227,15 +288,14 @@ O que fazer (todas as rotas usando o middleware `autenticar` da Parte 2):
 - `GET /api/locacoes`: listar as locações do usuário logado (ativas e finalizadas), usando `include` para trazer os dados do veículo.
 - `PATCH /api/locacoes/:id/finalizar`: só o dono da locação pode finalizar. Se já estiver finalizada devolve 409. Preencher a `dataDevolucao`, mudar o status para `FINALIZADA` e deixar o veículo disponível de novo, também dentro de `$transaction`.
 
-### Parte 4 - Frontend em React
+O frontend (Parte 4) já está pronto e usa exatamente essas rotas. Para as telas funcionarem, a Parte 3 precisa seguir estes nomes e formatos:
 
-- Criar o projeto React (com Vite) numa pasta `frontend` na raiz do repositório.
-- Telas de cadastro, login e logout. Guardar o token e mandar no cabeçalho `Authorization: Bearer <token>` em todas as requisições.
-- Tela de veículos: formulário de cadastro, lista e filtro de disponíveis.
-- Tela de locações: escolher um veículo disponível, colocar as datas, registrar, ver o histórico com o valor e botão para finalizar.
-- Usar `useState`, `useEffect` e formulários controlados. Depois de cada operação atualizar a lista na tela e mostrar mensagem de sucesso ou de erro.
-- Os dados têm que vir da API (fetch ou Axios), não pode usar lista fixa no código.
-- Atualizar a seção "Como rodar o frontend" deste README.
+- O controller de locação deve se chamar `locacaoController.registrar` e o service `locacaoService.registrar`.
+- `GET /api/veiculos` devolve uma lista com `id`, `marca`, `modelo`, `placa`, `ano`, `valorDiaria` e `disponivel`.
+- `GET /api/locacoes` devolve as locações com o veículo junto (`include: { veiculo: true }`), porque a tela mostra `locacao.veiculo.marca` e `locacao.veiculo.modelo`.
+- O `status` da locação tem que ser exatamente `"ATIVA"` ou `"FINALIZADA"`.
+- O frontend manda as datas no formato `"2026-11-20"`. É só usar `new Date(dataInicio)` no service.
+- Erros sempre com `criarErro`, para chegar no frontend como `{ "erro": "mensagem" }`.
 
 ### Respostas da API
 
