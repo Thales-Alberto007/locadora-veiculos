@@ -1,0 +1,58 @@
+@baseUrl = http://localhost:3333/api
+@token = {{login.response.body.token}}
+
+### Realizar login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "teste@locadora.com",
+    "senha": "Teste123456"
+}
+
+### Listar veículos
+GET {{baseUrl}}/veiculos
+Authorization: Bearer {{token}}
+
+### Cadastrar veículo
+# @name veiculo
+POST {{baseUrl}}/veiculos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "placa": "ABC1D23",
+    "ano": 2024,
+    "valorDiaria": 150
+}
+
+### Listar veículos disponíveis
+GET {{baseUrl}}/veiculos?disponivel=true
+Authorization: Bearer {{token}}
+
+
+### Criar locação
+POST {{baseUrl}}/locacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "veiculoId": 1,
+    "dataInicio": "2026-12-01T08:00:00.000Z",
+    "dataPrevistaDevolucao": "2026-12-04T08:00:00.000Z"
+}
+
+### Listar locações
+GET {{baseUrl}}/locacoes
+Authorization: Bearer {{token}}
+
+### Finalizar locação existente (ID 1)
+PATCH {{baseUrl}}/locacoes/1/finalizar
+Authorization: Bearer {{token}}
+
+### Conferir veículos disponíveis após devolução
+GET {{baseUrl}}/veiculos?disponivel=true
+Authorization: Bearer {{token}}
