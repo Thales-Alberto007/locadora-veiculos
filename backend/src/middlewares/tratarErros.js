@@ -7,7 +7,7 @@ function tratarErros(erro, req, res, next) {
     return res.status(409).json({ erro: "Já existe um cadastro com esses dados" });
   }
 
-  if (erro.status) {
+  if (Number.isInteger(erro.status) && erro.status >= 400 && erro.status <= 599) {
     return res.status(erro.status).json({ erro: erro.message });
   }
 
